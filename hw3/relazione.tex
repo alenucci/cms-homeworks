@@ -1,0 +1,101 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{subcaption}
+
+
+\title{Homework 3}
+\author{Alessandro Nucci}
+\date{June 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The system that we are going to study is composed of N = 70 monoatomic
+molecules in a cubic box of length L and volume $V = L^3$, with periodical
+boundary conditions, interacting through a pair potential of the
+following type
+\begin{equation}
+	V(r) = A\sigma^2\frac{e^{−r/\sigma}}{r^2}+ Be^{−2r/\sigma}
+\end{equation}
+Which bring us to a potential energy defined as
+$$\begin{cases}
+	U(r) = V(r) − V(r_c) − (r − r_c)V'(r_c) \quad for \: r < r_c\\
+	U(r) = 0 \quad for \: r \geq r_c
+\end{cases}$$
+B was chosen to be $A/2$, $r_c$ was set to $L/2$, $\rho/\sigma^3$ was
+fixed at 0.7, and the calculations have been carried in reduced units.\\
+The starting configuration of positions and velocities was generated
+sampling a uniform distribution, then the velocities sum was set to 0
+and the kinetic energy per particle was fixed to 1. Then the same
+configuration has been evolved for 1 units with a time step of 0.002
+and the kinetic energy has been rescaled to the same value as before.\\
+The five simulations done have been evolved for 30 time units with the
+following time steps
+\begin{center}
+\begin{tabular}{c|c|c|c|c}
+	0.002 & 0.006 & 0.018 & 0.054 & 0.162
+\end{tabular}
+\end{center}
+
+\section{Stable runs}
+The first three time steps gave stable results, as shown later, while
+the last two had a divergence in energy as we can see right under
+\begin{center}
+	\includegraphics[width=\linewidth]{plot/dump1.png}
+	\includegraphics[width=\linewidth]{plot/dump2.png}
+\end{center}
+
+\section{Trajectory divergence}
+Here are shown the divergencies of the trajectories for energy,
+temperature and pressure, i.e. the difference at any time between an
+observable computed by the most stable simulation (the one with smallest
+time step), and the same observable for all the other stable runs
+
+\begin{center}
+	\includegraphics[width=\linewidth]{plot/divE.png}
+	\includegraphics[width=\linewidth]{plot/divT.png}
+	\includegraphics[width=\linewidth]{plot/divP.png}
+\end{center}
+
+\section{Energy conservation}
+From the plot below we can see that energy is approximately conserved
+with an error growing with the time step
+\begin{center}
+	\includegraphics[width=\linewidth]{plot/plotE.png}
+	\includegraphics[width=\linewidth]{plot/plotE2.png}
+	\includegraphics[width=\linewidth]{plot/plotE3.png}
+\end{center}
+
+\section{Thermalization}
+From the subsequent plots, relatives to pressure and temperature,
+$t_{eq}$ is evaluated to 0.3 time units (the plots were zoomed to make
+thermalization noticeable)
+\begin{center}
+	\includegraphics[width=\linewidth]{plot/P.png}
+	\includegraphics[width=\linewidth]{plot/T.png}
+\end{center}
+
+\section{Errors and correlations}
+In conclusion, here are the averages, integrated autocorrelation times
+and computed errors for potential energy, pressure and temperature. All
+of these measures are consistent within the considered time steps
+
+\begin{center}
+\begin{tabular}{c|ccc}
+	& U & P & T\\
+	\hline
+	average & 98.85 & 0.55 &0.7879 \\
+	$\tau$ & 0.13 & 0.13 &0.13 \\
+	error & 0.4 & 0.0003 &0.0004
+\end{tabular}
+\end{center}
+
+\end{document}
