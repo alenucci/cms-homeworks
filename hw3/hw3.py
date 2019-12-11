@@ -5,8 +5,8 @@ from numba import f8, i8, jitclass, njit, prange
 def getconf(N, thermalize=True):
     rho = 0.7
     L = np.cbrt(N / rho)
-    pos = np.random.ranf((N, 3)) * L
-    vel = np.random.ranf((N, 3)) - 0.5
+    pos = np.random.rand(N, 3) * L
+    vel = np.random.rand(N, 3) - 0.5
     vel -= vel.mean(0, keepdims=True)
     vel *= np.sqrt(2 * N / (vel**2).sum())
     if thermalize:
@@ -104,6 +104,7 @@ class MD:
 
 @njit(parallel=True, nogil=True, fastmath=True, cache=True)
 def point(pos, vel, dt_values, t_max):
+    dt_values = np.array(dt_values)
     dt_max, n_obs = dt_values.max(), 4
     rec_len, n_sim = np.int(t_max / dt_max), len(dt_values)
     obs = np.empty((n_sim, n_obs, rec_len))
@@ -128,4 +129,6 @@ def unstable(pos, vel, dt_values, t_max):
             dt_values[i], t_max)[2, ::np.int(dt_max / dt_values[i])]
     return E
 
-point(*getconf(70), np.array([0.002, 0.006]), 10)
+
+if __name__ == "__main__":
+    point(*getconf(70), [0.002, 0.006], 10)
