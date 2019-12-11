@@ -95,21 +95,22 @@ class MD:
             U[t] = self._calc_F_U(forces, force_indices, part_forces[t % 2])
             self.vel += part_forces.sum(axis=0) * dt / 2
             K = np.sum(self.vel**2) / 2
-            E[t], T[t] = U[t] + K, 2 * K / (3 * self.N)
+            E[t] = U[t] + K
+            T[t] = 2 * K / (3 * self.N)
             P[t] = (self.N * T[t] + (self.pos * part_forces[t % 2]).sum() /
                     (3 * self.N)) / self.L**3
         return U, P, E, T
 
 
 @njit(parallel=True, nogil=True, fastmath=True, cache=True)
-def point(pos, vel, dt_values):
-    time, dt_max, n_obs = 30.0, dt_values.max(), 4
-    rec_len, n_sim = np.int(time / dt_max), len(dt_values)
+def point(pos, vel, dt_values, t_max):
+    dt_max, n_obs = dt_values.max(), 4
+    rec_len, n_sim = np.int(t_max / dt_max), len(dt_values)
     obs = np.empty((n_sim, n_obs, rec_len))
     tau, err = np.empty((n_sim, n_obs)), np.empty((n_sim, n_obs))
     for i in prange(n_sim):
         for j, a in enumerate(
-                MD(pos.copy(), vel.copy()).update(dt_values[i], time)):
+                MD(pos.copy(), vel.copy()).update(dt_values[i], t_max)):
             time_scale = np.int(dt_max / dt_values[i])
             obs[i, j] = a[::time_scale][:rec_len]
             tau[i, j] = autocorr(a[time_scale * 30:])
@@ -119,10 +120,12 @@ def point(pos, vel, dt_values):
 
 
 @njit(parallel=True, nogil=True, fastmath=True)
-def unstable(pos, vel, dt_values):
-    time, dt_max, n_sim = 30.0, dt_values.max(), len(dt_values)
-    E = np.empty((n_sim, np.int(time / dt_max)))
+def unstable(pos, vel, dt_values, t_max):
+    dt_max, n_sim = dt_values.max(), len(dt_values)
+    E = np.empty((n_sim, np.int(t_max / dt_max)))
     for i in prange(n_sim):
         E[i] = MD(pos.copy(), vel.copy()).update(  # yapf: disable
-            dt_values[i], time)[2, ::np.int(dt_max / dt_values[i])]
+            dt_values[i], t_max)[2, ::np.int(dt_max / dt_values[i])]
     return E
+
+point(*getconf(70), np.array([0.002, 0.006]), 10)
