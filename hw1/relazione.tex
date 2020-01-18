@@ -1,0 +1,222 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{subcaption}
+
+
+\title{Computational Statistical Mechanics\\Homework 1}
+\author{Alessandro Nucci}
+\date{April 2019}
+
+\begin{document}
+\maketitle
+\section{Introduction}
+This report will discuss the error analysis done on four Monte Carlo generated observables, measured
+sixty thousands times each, which exentially consists in estimating for each observable mean,
+error (assuming independent measures), autocorrelation time and subsequent reestimation of the errors,
+calculated from blocking analysis and then explicitly integrating autocorrelation functions, and finally
+some funcions of those observables and the relative errors with the Jackknife method.\\
+The first thing to be pointed out is that data is thermalized, because the distribution of all the
+observables doesn't show dependancy from time as we can see on the scatterplots below.
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.5\textwidth]{plots/scatter_0.png}%
+\includegraphics[width=0.5\textwidth]{plots/scatter_1.png}
+\includegraphics[width=0.5\textwidth]{plots/scatter_2.png}%
+\includegraphics[width=0.5\textwidth]{plots/scatter_3.png}
+\caption{Thermalisation}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+ & $U_1$ & $U_2$ & $U_3$ & $U_4$ \\
+ \hline
+ $\overline{U_i}$ & 3.897 & 6.808 & 2.029 & 1.257 \\
+ \hline
+ $\sigma_{U_i}$ & 0.008 & 0.006 & 0.002 & 0.012 \\
+ \hline
+\end{tabular}
+\end{table}
+Above are reported the values of mean and error for each observable.
+Those were calculated with the using
+\begin{equation}
+\bar{ U_i } =\frac{1}{N}\sum_{n=1}^{N}{U_i(n)}
+\end{equation}
+\begin{equation}
+\sigma_i=\sqrt{\frac{Var(U_i)}{N}}
+\end{equation}
+where $Var(U_i)$ is the unbiased variance
+\begin{equation}
+Var(U_i) =\frac{1}{N-1}\sum_{n=1}^N (U_i^2(n) - \bar{U_i^2})
+\end{equation}
+
+\section{Blocking Analysis}
+In this section we will perform a blocking analysis on the observables to find an extimate of their
+autocorrelation time. Let's first define blocked variables iteratively as:
+\begin{equation}
+U^{(1)}(t) = \frac{1}{2}[(U_i(2t-1)-U_i(2t)]
+\end{equation}
+\begin{equation}
+U^{(k)}(t)=\frac{1}{2}[U_i^{(k-1)}(2t-1)+U_i^{(k-1)}(2t)]
+\end{equation}
+The means obviously don't change while the error does. In facts, if samples were independent,
+we'd see the error fixed, according to
+\begin{equation}
+var U_i\approx 2var U_i^{(1)}\approx ... \approx 2^kvar U_i^{(k)}
+\end{equation}
+but, as we will see from the following graphs, the error grows due to autocorrelation until it reaches a maximum,
+and $k$ (the $log_2$ of blocking lenght) at the maximum error will have a value
+similar to the autocorrelation time, which is the minimum time between twomeasures (in Monte Carlo
+units) to consider them as independent.\\
+So we compute the (2) for each blocking lenght and take the maximum (which
+happens to be at $k = 10$, for a blocking lenght of $\sim1024$, before the error rapidly decreases due to
+the reducton of the number of samples) as the error:
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+& $U_1$ & $U_2$ & $U_3$ & $U_4$ \\
+\hline
+$\sigma_{blocking}$ & 0.061 & 0.041 & 0.007 & 0.047 \\
+\hline
+\end{tabular}
+\caption{Error in blocking analysis for $k=10$}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.5\textwidth]{plots/blocking.png}%
+\includegraphics[width=0.5\textwidth]{plots/blocking_norm.png}
+\caption{Erros vs $log_2$ of the blocking lenght, normalized with $\sigma_i$ from previous section in
+the second graph}
+\end{figure}
+
+\section{Autocorrelation Analysis}
+Now we're going to extimate autocorrelation times studying explicitly the autocorrelation
+functions, which are defined as
+\begin{equation}
+C_U(k)=\left\langle\left(U_{n+k}-\langle U \rangle\right)\left(U_k-\langle U \rangle \right) \right\rangle
+\end{equation}
+whose estimator is therefore
+\begin{equation}
+C_U(k)=\frac{1}{N-k}\sum_{n=1}^{N-k}(U_{n+k}-\overline{U})(U_n-\overline{U})
+\end{equation}
+Obviously for $k=0$ the autocorrelation function corresponds to the static variance.
+We define the integrated autocorrelation time as
+\begin{equation}
+\tau_{int}=\frac{1}{2}+\sum_{k=1}^{\infty}\frac{C(k)}{C(0)}
+\end{equation}
+Truncating the sum where the autocorrelation becomes negligible leads to a better extimate
+of $\tau_{int}$, because in this way we can avoid integrating noise. As shown by the following plots, at $k_{max} = 100$ the sum seems to have
+converged.
+The measured values of $\tau_{int}$ are
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    & $U_1$ & $U_2$ & $U_3$ & $U_4$ \\
+    \hline
+    $\tau_{int}$ & 21.49 & 21.07 & 8.26 & 7.78 \\
+    \hline
+    \end{tabular}
+    \caption{correlation time for each set}
+\end{table}\\
+and the reestimated errors are calculated with
+\begin{equation}
+\sigma_\tau=\sigma_{ind}\sqrt{2\tau_{int}}
+\end{equation}
+where $\sigma_{ind}$ was computed with (2)\\
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    & $U_1$ & $U_2$ & $U_3$ & $U_4$ \\
+    \hline
+     $\sigma _{blocking}$  & 0.060 & 0.040 & 0.007 & 0.046 \\
+    \hline
+    $\sigma _\tau$ & 0.055 & 0.038 & 0.007 & 0.046 \\
+    \hline
+\end{tabular}
+\caption{Errors given by blocking and autocorrelation analyses for a comparison}
+\end{table}\\
+We can see above that the errors calculated in this section are compatible with those computed using
+data blocking
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{plots/autocorr.png}%
+\caption{Autocorrelation functions}%
+\includegraphics[width=0.6\textwidth]{plots/log_autocorr.png}
+\caption{Autocorrelation functions (log scale)}
+\end{figure}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{plots/tau.png}
+\caption{Autocorrelation functions integral}
+\end{figure}
+
+\newpage
+\section{Jackknife}
+Our last task is to extimate the ratios
+\begin{equation}
+    R_i=\frac{U_i}{U_1}
+\end{equation}
+for $i=2,3,4$, and compute the associated errors, with the Jackknife method. The first step is to
+make data blocks $\hat U_{i,\alpha}$ of lenght $1500$, in order to average on independent data (as confirmed by the
+previous sections). Then we are taking the JackKnife partial averages as follows
+\begin{equation}
+    U_{i,\alpha}^{JK}=\frac{1}{M-1}\sum_{\beta \ne \alpha}^{M}\hat U_{i,\beta}
+\end{equation}
+and we compute the ratios
+\begin{equation}
+    R_{i,\alpha}^{JK}=\frac{U_{i,\alpha}^{JK}}{U_{1,\alpha}^{JK}}
+\end{equation}
+The estimators for the $R_i$ are
+\begin{equation}
+    \hat {R}_i^{JK}= MR_{i,est}-\frac{M-1}{M}\sum_{\alpha=1}^{M}R_{i,\alpha}^{JK}
+\end{equation}
+where $R_{i,est}$ stands for $\frac{\bar U_i}{\bar U_1}$, it is .\\
+The associated errors are calculated with
+\begin{equation}
+    \sigma_i^{JK}=\sqrt{\frac{M-1}{M}\sum_{\alpha=1}^{M}(R_{i,\alpha}^{JK}-\hat {R}_i^{JK})^2}
+\end{equation}
+These errors take the correlations into account, and the bias is proportional to $N^{-2}$.\\
+The last thing to do is a comparison with the worst case error (approximating the covariance
+with its maximum value) and with the error computed neglecting covariance itself.
+Those errors are expressed by these furmulas:
+\begin{equation}
+\sigma_{IE_i}=\left|R_{i,est}\right|\sqrt{\frac{\sigma_{i,\tau}^2}{\bar U_i ^2} + \frac{\sigma_{1,\tau}^2}{\bar U_1 ^2}}
+\end{equation}
+\begin{equation}
+\sigma_{WE_i} = \left|R_{i,est}\right| \left[ \frac{\sigma_{i,\tau}}{\left|\bar U_i \right|} + \frac{\sigma_{1,\tau}}{\left|\bar U_1 \right|} \right]
+\end{equation}\\
+As we expected, $\sigma^{JK} \leq \sigma _{WE}$, more specifically $\sigma^{JK}$ for $R_2$ is closer to $\sigma _{WE}$,
+so $U_1$ and $U_2$ are very correlated (their integrated autocorrelation times are also similar, as we have seen before).
+On the opposite, $\sigma^{JK}$ is closer to $\sigma _{IE}$ for $R_3$ and $R_4$, so $U_3$ and $U_4$ are
+essentially uncorrelated with $U_1$.
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+    & $R_2$ & $R_3$ & $R_4$  \\
+    \hline
+    $R^{JK}$ & 1.750 & 0.521 &0.322 \\
+    \hline
+    $\sigma^{JK}$ & 0.034 & 0.008 & 0.013 \\
+    \hline
+    $\sigma_{IE}$  & 0.027 & 0.008 & 0.013 \\
+    \hline
+    $\sigma _{WE}$ & 0.034 & 0.009 & 0.016  \\
+    \hline
+\end{tabular}
+\caption{Estimates of $R_i$'s and their errors, compared with $\sigma_{IE}$(errors neglecting correlations)
+and $\sigma_{WE}$}
+\end{table}
+
+\end{document}

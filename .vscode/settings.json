@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "/home/ale/miniconda3/envs/idp/bin/python",
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true
+}
