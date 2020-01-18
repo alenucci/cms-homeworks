@@ -1,35 +1,10 @@
-hw3/__pycache__/hw3.cpython-37.pyc
-hw3/__pycache__/hw3.point-95.py37.1.nbc
-hw3/__pycache__/hw3.point-97.py37.1.nbc
-hw3/__pycache__/hw3.point-97.py37.nbi
-hw3/__pycache__/hw3.point-95.py37.nbi
-hw3/__pycache__/hw3.point-96.py37.1.nbc
-hw3/__pycache__/hw3.point-110.py37.1.nbc
-hw3/__pycache__/hw3.point-103.py37.1.nbc
-hw3/__pycache__/hw3.point-103.py37.nbi
-hw3/plot/divE.png
-hw3/__pycache__/hw3.point-96.py37.nbi
-hw3/plot/divP.png
-hw3/plot/dump2.png
-hw3/plot/E_corr.png
-hw3/plot/plotE.png
-hw3/plot/plotE3.png
-hw3/plot/dump1.png
-hw3/plot/divT.png
-hw3/plot/plotE2.png
-hw3/plot/P.png
-hw3/plot/T.png
-hw3/__pycache__/hw3.point-110.py37.nbi
-hw3/.ipynb_checkpoints/nb-checkpoint.ipynb
-hw3/relazione.synctex.gz
-hw3/relazione.pdf
-hw2/plot/errors_descending.png
-hw2/plot/correlations_descending.png
-hw2/.vscode/settings.json
-hw3/.vscode/settings.json
-hw2/60.txt
-hw2/200.txt
-hw2/100.txt
-hw2/.vscode/launch.json
-hw2/__pycache__/hw2_numba.cpython-37.pyc
-hw2/__pycache__/hw2.cpython-37.pyc
+# *.pyc
+# *.nbc
+# *.nbi
+# *.png
+*.txt
+*.pdf
+*.gz
+.vscode
+__pycache__
+plot
