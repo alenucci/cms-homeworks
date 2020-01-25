@@ -93,23 +93,29 @@ class MD:
         part_forces = np.empty((2, self.N, 3))
 
         steps = np.int(t_max / dt)
-        U, P = np.empty(steps), np.empty(steps)
-        E, T = np.empty(steps), np.empty(steps)
+        observables = {
+            "U": np.empty(steps),
+            "P": np.empty(steps),
+            "E": np.empty(steps),
+            "T": np.empty(steps),
+        }
 
         self._calc_F_U(forces, force_indices, part_forces[1])
         for t in range(steps):
             self.pos += self.vel * dt + part_forces[(t + 1) % 2] * dt ** 2 / 2
             # self.pos %= self.L
-            U[t] = self._calc_F_U(forces, force_indices, part_forces[t % 2])
+            observables["U"][t] = self._calc_F_U(
+                forces, force_indices, part_forces[t % 2]
+            )
             self.vel += part_forces.sum(axis=0) * dt / 2
             K = np.sum(self.vel ** 2) / 2
-            E[t] = U[t] + K
-            T[t] = 2 * K / (3 * self.N)
-            P[t] = (
-                self.N * T[t]
+            observables["E"][t] = observables["U"][t] + K
+            observables["T"][t] = 2 * K / (3 * self.N)
+            observables["P"][t] = (
+                self.N * observables["T"][t]
                 + (self.pos * part_forces[t % 2]).sum() / (3 * self.N)
             ) / self.L ** 3
-        return U, P, E, T
+        return observables
 
 
 @njit(parallel=True, nogil=True, fastmath=True, cache=True)
@@ -132,16 +138,6 @@ def point(pos, vel, dt_values, t_max):
     return obs[:, 0], obs[:, 1], obs[:, 2], obs[:, 3], tau, err
 
 
-@njit(parallel=True, nogil=True, fastmath=True)
-def unstable(pos, vel, dt_values, t_max):
-    dt_max, n_sim = dt_values.max(), len(dt_values)
-    E = np.empty((n_sim, np.int(t_max / dt_max)))
-    for i in prange(n_sim):
-        E[i] = MD(pos.copy(), vel.copy()).update(  # yapf: disable
-            dt_values[i], t_max
-        )[2, :: np.int(dt_max / dt_values[i])]
-    return E
-
-
 if __name__ == "__main__":
-    point(*getconf(70), [0.002, 0.006], 10)
+    # point(*getconf(70), [0.002, 0.006], 10)
+    print(MD(*getconf(10)).update(0.002, 0.006))
