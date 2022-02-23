@@ -1,5 +1,6 @@
 import numpy as np
-from numba import f8, i8, jitclass, njit, prange
+from numba import f8, i8, njit, prange
+from numba.experimental import jitclass
 
 
 def getconf(N, thermalize=True):
@@ -26,24 +27,23 @@ def autocorr(data: np.ndarray):
     return tau
 
 
-types = [
-    ("N", i8),
-    ("pos", f8[:, :]),
-    ("vel", f8[:, :]),
-    ("dt", f8),
-    ("L", f8),
-    ("r_cut", f8),
-    ("V_rc", f8),
-    ("V_rc_prime", f8),
-]
-
-
-@jitclass(types)
+@jitclass(
+    [
+        ("N", i8),
+        ("pos", f8[:, :]),
+        ("vel", f8[:, :]),
+        ("dt", f8),
+        ("L", f8),
+        ("r_cut", f8),
+        ("V_rc", f8),
+        ("V_rc_prime", f8),
+    ]
+)
 class MD:
     def __init__(self, pos, vel):
+        rho = 0.7
         self.N = pos.shape[0]
         self.pos, self.vel = pos, vel
-        rho = 0.7
         self.L = (self.N / rho) ** (1 / 3)
         self.r_cut = self.L / 2
         self.V_rc = (
@@ -86,19 +86,13 @@ class MD:
         rng = np.arange(self.N - 1)
         cum_rng = rng.cumsum()
         for part in range(self.N):
-            force_indices[part] = np.concatenate(
-                (cum_rng[part - 1] + rng[:part], cum_rng[part:] + part)
-            )
+            force_indices[part, :part] = cum_rng[part - 1] + rng[:part]
+            force_indices[part, part:] = cum_rng[part:] + part
         forces = np.empty((self.N * (self.N - 1) // 2, 3))
         part_forces = np.empty((2, self.N, 3))
 
         steps = np.int(t_max / dt)
-        observables = {
-            "U": np.empty(steps),
-            "P": np.empty(steps),
-            "E": np.empty(steps),
-            "T": np.empty(steps),
-        }
+        observables = {obs: np.empty(steps) for obs in ["U", "P", "E", "T"]}
 
         self._calc_F_U(forces, force_indices, part_forces[1])
         for t in range(steps):
@@ -118,16 +112,16 @@ class MD:
         return observables
 
 
-@njit(parallel=True, nogil=True, fastmath=True, cache=True)
+@njit(parallel=True, nogil=True)
 def point(pos, vel, dt_values, t_max):
-    dt_values = np.array(dt_values)
+    # dt_values = np.array(dt_values)
     dt_max, n_obs = dt_values.max(), 4
     rec_len, n_sim = np.int(t_max / dt_max), len(dt_values)
     obs = np.empty((n_sim, n_obs, rec_len))
     tau, err = np.empty((n_sim, n_obs)), np.empty((n_sim, n_obs))
     for i in prange(n_sim):
         for j, a in enumerate(
-            MD(pos.copy(), vel.copy()).update(dt_values[i], t_max)
+            MD(pos.copy(), vel.copy()).update(dt_values[i], t_max).values()
         ):
             time_scale = np.int(dt_max / dt_values[i])
             obs[i, j] = a[::time_scale][:rec_len]
@@ -139,5 +133,5 @@ def point(pos, vel, dt_values, t_max):
 
 
 if __name__ == "__main__":
-    # point(*getconf(70), [0.002, 0.006], 10)
-    print(MD(*getconf(10)).update(0.002, 0.006))
+    # MD(*getconf(10)).update(0.002, 0.006)
+    point(*getconf(70), (0.002, 0.006), 10)

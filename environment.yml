@@ -1,0 +1,13 @@
+name: base
+channels:
+  - intel
+  - pyviz
+  - defaults
+dependencies:
+  - conda
+  - python=3.9
+  - numba
+  - numpy
+  - scipy
+  - holoviews
+prefix: /opt/conda

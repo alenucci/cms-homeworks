@@ -20,7 +20,7 @@ print(time.time() - start)
 # %%
 dt_values = np.array([0.002, 0.006, 0.018, 0.054, 0.162])
 start = time.time()
-U, P, E, T, tau, err = hw3.point(*hw3.getconf(70), dt_values[:3])
+U, P, E, T, tau, err = hw3.point(*hw3.getconf(70), dt_values[:3], 30.0)
 print(time.time() - start)
 
 time_axe = dt_values[:3].max() * np.arange(U.shape[1])
@@ -39,13 +39,13 @@ plot_U = hv.NdOverlay({
     for i in range(3)})
 
 divergence_E = hv.NdOverlay({
-    dt_values[i]: hv.Curve((time_axe, E[i] - E[0]), "time", "energy")
+    dt_values[i]: hv.Curve((time_axe, E[i] / E[0] - 1), "time", "energy")
     for i in range(1, 3)})
 divergence_T = hv.NdOverlay({
-    dt_values[i]: hv.Curve((time_axe, T[i] - T[0]), "time", "temperature")
+    dt_values[i]: hv.Curve((time_axe, T[i] / T[0] - 1), "time", "temperature")
     for i in range(1, 3)})
 divergence_P = hv.NdOverlay({
-    dt_values[i]: hv.Curve((time_axe, P[i] - P[0]), "time", "pressure")
+    dt_values[i]: hv.Curve((time_axe, P[i] / P[0] - 1), "time", "pressure")
     for i in range(1, 3)})
 # yapf: enable
 
