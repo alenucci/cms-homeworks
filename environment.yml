@@ -1,4 +1,4 @@
-name: base
+name: homework
 channels:
   - intel
   - pyviz
@@ -10,4 +10,3 @@ dependencies:
   - numpy
   - scipy
   - holoviews
-prefix: /opt/conda

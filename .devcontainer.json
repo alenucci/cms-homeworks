@@ -1,7 +1,7 @@
 {
 	"name": "Miniconda (Python 3)",
 	"image": "continuumio/miniconda3",
-	"postCreateCommand": "conda env create",
+	"postCreateCommand": "conda env update",
 	"extensions": [
 		"ms-python.python"
 	]
